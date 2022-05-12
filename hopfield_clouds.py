@@ -16,21 +16,20 @@ class HopfieldClouds:
         self.current_image_index = 0
 
         train_files = [f for f in listdir('chmurki') if isfile(join('chmurki', f))]
-        train_paths = [join('chmurki', f) for f in train_files]
+        self.train_paths = [join('chmurki', f) for f in train_files]
 
         print("Loading images...")
-        self.xi = images2xi(train_paths, self.N)
+        self.xi = images2xi(self.train_paths, self.N)
         print("Training network...")
         self.hopfield_network.train_pattern(self.xi)
 
     # Get an image from self.xi with provided index, remove provided percentage of pixels and try to reconstruct
     # Returns the cropped image and the reconstructed image
     def predict_image(self, index, obstruction_percentage=20, iterations=1):
-        xi = self.xi
-        half_image = np.copy(xi[:, index])
+        half_image = np.copy(self.xi[:, index])
         half_image[: int(self.N / (100 / obstruction_percentage))] = -1
         self.hopfield_network.set_initial_neurons_state(np.copy(half_image))
-        self.hopfield_network.compute_energy(xi[:, index])
+        self.hopfield_network.compute_energy(self.xi[:, index])
         self.hopfield_network.update_neurons(iterations, 'async')
 
         image_pil = self.__xi_to_PIL(self.hopfield_network.S)
@@ -49,14 +48,21 @@ class HopfieldClouds:
         # img_buf.close()
         return im
 
+    def get_current_cropped(self, obstruction_percentage=20):
+        half_image = np.copy(self.xi[:, self.current_image_index])
+        half_image[: int(self.N / (100 / obstruction_percentage))] = -1
+        half_image_pil = self.__xi_to_PIL(half_image)
+        return half_image_pil
+
+
     # Moves the current index to the next image and returns it
     def next_image(self):
-        self.current_image_index = (self.current_image_index + 1) % len(self.xi)
+        self.current_image_index = (self.current_image_index + 1) % len(self.train_paths)
         return self.get_current_image()
 
     # Moves the current index to the previous image and returns it
     def prev_image(self):
-        self.current_image_index = (self.current_image_index - 1) % len(self.xi)
+        self.current_image_index = (self.current_image_index - 1) % len(self.train_paths)
         return self.get_current_image()
 
     # Returns the current image
@@ -65,5 +71,5 @@ class HopfieldClouds:
         return self.__xi_to_PIL(image)
 
     # Returns the predictions for the current image with the provided obstruction percentage
-    def get_current_image_predictions(self, obstruction_percentage=20):
-        return self.predict_image(self.current_image_index, obstruction_percentage)
+    def get_current_image_predictions(self, obstruction_percentage=20, iterations=1):
+        return self.predict_image(self.current_image_index, obstruction_percentage, iterations)
