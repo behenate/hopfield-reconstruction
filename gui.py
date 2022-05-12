@@ -20,6 +20,7 @@ class GUI:
         self.network = HopfieldClouds(130 ** 2)
         self.root = tk.Tk()
         self.root.geometry('1280x720')
+        self.root.title('Hopfield Clouds')
 
         self.next_button = ttk.Button(self.root, text='>', command=self.next_image)
         self.next_button.grid(row=1, column=0, sticky=tk.E)
