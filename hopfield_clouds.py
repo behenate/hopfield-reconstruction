@@ -3,14 +3,15 @@ from os import listdir
 from os.path import isfile, join
 
 from PIL import Image
-from hopfieldnetwork import HopfieldNetwork, hamming_distance
-from hopfieldnetwork import images2xi, plot_network_development, DATA_DIR
+from hopfieldnetwork import HopfieldNetwork
+from hopfieldnetwork import images2xi
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 class HopfieldClouds:
     def __init__(self, size):
+        #N - number of neurons
         self.N = size
         self.hopfield_network = HopfieldNetwork(N=self.N)
         self.current_image_index = 0
@@ -29,7 +30,6 @@ class HopfieldClouds:
         half_image = np.copy(self.xi[:, index])
         half_image[: int(self.N / (100 / obstruction_percentage))] = -1
         self.hopfield_network.set_initial_neurons_state(np.copy(half_image))
-        self.hopfield_network.compute_energy(self.xi[:, index])
         self.hopfield_network.update_neurons(iterations, 'async')
 
         image_pil = self.__xi_to_PIL(self.hopfield_network.S)
